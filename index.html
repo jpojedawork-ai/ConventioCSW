@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minuta de Reunión</title>
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background: #e0e0e0; color: #333; margin: 0; padding: 20px; }
+h1 { text-align: center; background: linear-gradient(90deg, #4a90e2, #6cb8f0); color: white; padding: 15px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+.container { width: 100%; max-width: 950px; margin: 20px auto; background: #f9f9f9; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); border-top: 5px solid #4a90e2; }
+label { font-weight: 600; display: block; margin-top: 15px; color: #444; }
+input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: #fdfdfd; transition: border 0.3s, box-shadow 0.3s; }
+input:focus, select:focus, textarea:focus { border-color: #4a90e2; box-shadow: 0 0 5px rgba(74,144,226,0.4); outline: none; }
+textarea { resize: vertical; min-height: 60px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.time-group, .date-group { flex: 1; }
+.time-select { width: auto; display: inline-block; padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin-right: 2px; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; border-radius: 8px; overflow: hidden; table-layout: fixed; }
+th, td { padding: 10px; text-align: left; border: 1px solid #ccc; word-wrap: break-word; }
+th { background: #4a90e2; color: white; font-weight: 600; }
+tbody tr:nth-child(odd) { background: #f0f4f8; }
+tbody tr:nth-child(even) { background: #ffffff; }
+tbody tr:hover { background: #d0e4fb; }
+button { background: #4a90e2; color: white; border: none; padding: 10px 15px; margin-top: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.3s, transform 0.2s; }
+button:hover { background: #357abd; transform: translateY(-2px); }
+.section-title { font-size: 1.15em; margin-top: 25px; border-left: 5px solid #4a90e2; padding-left: 10px; color: #4a90e2; font-weight: 600; }
+.delete-btn { background:#e74c3c; margin:0; padding:5px 8px; font-size:12px; }
+.delete-btn:hover { background:#c0392b; }
+.generated-minuta { margin-top: 25px; padding: 20px; background: #f9f9f9; border-radius: 12px; border: 1px solid #4a90e2; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+
+/* ✅ Columnas "Acción" con ancho fijo de 160px */
+#asistentesTable th:last-child,
+#asistentesTable td:last-child,
+#temasTable th:last-child,
+#temasTable td:last-child,
+#acuerdosTable th:last-child,
+#acuerdosTable td:last-child {
+  width: 160px;
+}
+
+@media (max-width: 650px) {
+  .row { flex-direction: column; }
+  .time-select { width: 100%; margin-right: 0; margin-top: 5px; }
+}
+
+.generated-minuta {
+  overflow: visible;      /* Permite que el contenido crezca */
+  max-height: none;       /* Sin límite de altura */
+  zoom: 1;                /* Evita escalado inesperado */
+}
+
+/* Ajustar automáticamente columnas solo en la minuta generada */
+.generated-minuta table {
+  table-layout: auto; /* columnas se ajustan al contenido */
+}
+
+.generated-minuta table th,
+.generated-minuta table td {
+  width: auto; /* elimina cualquier ancho fijo */
+}
+
+/* Ajustar tablas de la minuta generada */
+.generated-minuta table {
+  table-layout: auto; /* columnas ajustables al contenido */
+}
+
+/* --- Minuta: columnas Asistentes con ancho igual y texto en varias líneas --- */
+.generated-minuta table:nth-of-type(1) th,
+.generated-minuta table:nth-of-type(1) td {
+  width: 25%;       /* 4 columnas => 25% cada una */
+  white-space: normal; /* permite que el texto se ajuste en varias líneas */
+}
+
+/* --- Minuta: columnas Acuerdos (Responsable, Fecha) --- */
+.generated-minuta table:nth-of-type(3) th:nth-child(2),
+.generated-minuta table:nth-of-type(3) th:nth-child(3),
+.generated-minuta table:nth-of-type(3) td:nth-child(2),
+.generated-minuta table:nth-of-type(3) td:nth-child(3) {
+  white-space: nowrap;
+}
+
+/* --- Las demás columnas (Tema, Acuerdo) se ajustan automáticamente */
+.generated-minuta table {
+  table-layout: auto;
+  width: 100%;
+}
+
+/* Logo de Control Interno - Efecto hover */
+#logoControlInterno:hover {
+    transform: scale(1.05);
+    opacity: 1;
+}
+
+/* Logo CSW - Efecto hover */
+div > img:last-child:hover {
+    transform: scale(1.05);
+}
+
+/* ============================
+   BOTÓN FLOTANTE FULLSCREEN
+   (arriba, sin scroll)
+   ============================ */
+.fullscreen-fab{
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 10000;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.fullscreen-fab:hover{
+  transform: translateY(-2px);
+  background: rgba(0,0,0,0.5);
+}
+</style>
+</head>
+
+<body>
+
+<!-- BOTÓN FULLSCREEN (siempre visible arriba a la derecha) -->
+<button id="fullscreenBtn" class="fullscreen-fab" title="Pantalla completa" aria-label="Pantalla completa">
+  <span id="fullscreenIcon">⛶</span>
+</button>
+
+<div style="text-align:center; margin-bottom:15px;">
+    <!-- Logo de Control Interno arriba - AZUL FUERTE -->
+    <div style="margin-bottom: 10px;">
+        <img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20Control%20Interno.png" 
+             alt="Logo Control Interno" 
+             id="logoControlInterno"
+             style="max-width: 100px; height: auto; filter: brightness(0) saturate(100%) invert(18%) sepia(72%) saturate(1273%) hue-rotate(190deg) brightness(90%) contrast(96%); transition: all 0.3s ease;">
+    </div>
+    
+    <!-- Logo CSW debajo (se mantiene original) -->
+    <img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20CSW.png" 
+         alt="Logo Scriptum" 
+         style="max-width: 150px; height: auto; transition: all 0.3s ease;">
+</div>
+
+<h1>Minuta de Reunión</h1>
+
+<div class="container">
+  <label>Lugar:</label>
+  <input type="text" id="lugar">
+
+  <div class="row">
+    <div class="date-group">
+      <label>Fecha:</label>
+      <input type="date" id="fecha">
+    </div>
+    <div class="time-group">
+      <label>Hora Inicial:</label>
+      <div class="row">
+        <select class="time-select" id="horaInicioH"></select>: 
+        <select class="time-select" id="horaInicioM"></select>
+        <select class="time-select" id="horaInicioAMPM"><option>AM</option><option>PM</option></select>
+      </div>
+    </div>
+    <div class="time-group">
+      <label>Hora Final:</label>
+      <div class="row">
+        <select class="time-select" id="horaFinH"></select>: 
+        <select class="time-select" id="horaFinM"></select>
+        <select class="time-select" id="horaFinAMPM"><option>AM</option><option>PM</option></select>
+      </div>
+    </div>
+  </div>
+
+  <label>Sala:</label>
+  <input type="text" id="sala">
+  <label>Tipo de reunión:</label>
+  <input type="text" id="tipo">
+  <label>Organizador / Facilitador:</label>
+  <input type="text" id="organizador">
+
+  <div class="section-title">Asistentes</div>
+  <table id="asistentesTable">
+    <thead><tr><th>Nombre completo</th><th>Área/Departamento</th><th>Rol o Participación</th><th>Participación</th><th>Acción</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <button type="button" onclick="agregarAsistente()">+ Agregar Asistente</button>
+
+  <div class="section-title">Temas del Orden del Día</div>
+  <table id="temasTable">
+    <thead><tr><th>Tema</th><th>Acción</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <button type="button" onclick="agregarTema()">+ Agregar Tema</button>
+
+  <div class="section-title">Acuerdos</div>
+  <table id="acuerdosTable">
+    <thead><tr><th>Acuerdo</th><th>Responsable</th><th>Fecha</th><th>Acción</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <button type="button" onclick="agregarAcuerdo()">+ Agregar Acuerdo</button>
+
+  <div class="section-title">Notas Adicionales</div>
+  <textarea id="notas"></textarea>
+
+  <div style="margin-top:15px;">
+    <button onclick="generarMinuta()">Generar Minuta</button>
+    <button onclick="nuevaMinuta()">Nueva Minuta</button>
+    <button onclick="exportarMinuta()">Exportar Minuta</button>
+    <button onclick="document.getElementById('importFile').click()">Importar Minuta</button>
+    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importarMinuta(event)">
+  </div>
+
+  <div id="minutaGenerada" class="generated-minuta" style="display:none;"></div>
+  <div id="acciones" style="display:none; margin-top:15px;">
+    <button onclick="imprimirMinuta()">Imprimir</button>
+    <button onclick="enviarCorreoWord()">Enviar por Correo / Word</button>
+    <button onclick="exportarPDF()">Descargar PDF</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+/* ============================
+   FULLSCREEN API (botón arriba)
+   ============================ */
+(function initFullscreen(){
+  const btn = document.getElementById('fullscreenBtn');
+  const icon = document.getElementById('fullscreenIcon');
+  if (!btn || !icon) return;
+
+  const docEl = document.documentElement;
+  const canEnter = !!(docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen);
+  const canExit  = !!(document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen);
+
+  // Si el navegador no soporta fullscreen, ocultar el botón.
+  if (!canEnter || !canExit) {
+    btn.style.display = 'none';
+    return;
+  }
+
+  function isFullscreen(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+  }
+
+  async function enterFullscreen(){
+    try{
+      if (docEl.requestFullscreen) await docEl.requestFullscreen();
+      else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+      else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+    }catch(e){}
+  }
+
+  async function exitFullscreen(){
+    try{
+      if (document.exitFullscreen) await document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      else if (document.msExitFullscreen) document.msExitFullscreen();
+    }catch(e){}
+  }
+
+  function syncUI(){
+    const fs = isFullscreen();
+    icon.textContent = fs ? '⤫' : '⛶';
+    btn.title = fs ? 'Salir de pantalla completa' : 'Pantalla completa';
+    btn.setAttribute('aria-label', btn.title);
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (isFullscreen()) exitFullscreen();
+    else enterFullscreen();
+  });
+
+  document.addEventListener('fullscreenchange', syncUI);
+  document.addEventListener('webkitfullscreenchange', syncUI);
+  document.addEventListener('msfullscreenchange', syncUI);
+
+  syncUI();
+})();
+
+// --- Inicializar selectores de hora ---
+function llenarSelectores(){
+  const horas=Array.from({length:12},(_,i)=>i+1);
+  const minutos=["00","15","30","45"];
+  ["horaInicioH","horaFinH"].forEach(id=>{ const sel=document.getElementById(id); horas.forEach(h=> sel.appendChild(new Option(h,h))); });
+  ["horaInicioM","horaFinM"].forEach(id=>{ const sel=document.getElementById(id); minutos.forEach(m=> sel.appendChild(new Option(m,m))); });
+}
+
+// --- Funciones agregar fila ---
+function agregarAsistente(data){
+  const tbody=document.querySelector("#asistentesTable tbody");
+  const row=document.createElement("tr");
+  row.innerHTML=`<td><input type="text" value="${data?.nombre||''}" oninput="actualizarResponsables()"></td>
+  <td><input type="text" value="${data?.area||''}"></td>
+  <td><input type="text" value="${data?.rol||''}"></td>
+  <td><select><option value="">Seleccione</option><option ${data?.participacion==='Presente'?'selected':''}>Presente</option><option ${data?.participacion==='Ausente'?'selected':''}>Ausente</option><option ${data?.participacion==='Para su información'?'selected':''}>Para su información</option></select></td>
+  <td><button class="delete-btn" onclick="eliminarFila(this)">Eliminar</button></td>`;
+  tbody.appendChild(row);
+  actualizarResponsables();
+}
+
+function agregarTema(data){
+  const tbody=document.querySelector("#temasTable tbody");
+  const row=document.createElement("tr");
+  row.innerHTML=`<td><input type="text" value="${data?.tema||''}"></td>
+  <td><button class="delete-btn" onclick="eliminarFila(this)">Eliminar</button></td>`;
+  tbody.appendChild(row);
+  guardarLocalStorage();
+}
+
+function agregarAcuerdo(data){
+  const tbody=document.querySelector("#acuerdosTable tbody");
+  const row=document.createElement("tr");
+  row.innerHTML=`<td><input type="text" value="${data?.acuerdo||''}"></td>
+  <td><select class="responsableSelect"></select></td>
+  <td><input type="date" value="${data?.fecha||''}"></td>
+  <td><button class="delete-btn" onclick="eliminarFila(this)">Eliminar</button></td>`;
+  tbody.appendChild(row);
+  actualizarResponsables();
+  if (data?.responsable) row.querySelector(".responsableSelect").value = data.responsable;
+}
+
+// --- Eliminar fila ---
+function eliminarFila(btn){ btn.closest('tr').remove(); actualizarResponsables(); guardarLocalStorage(); }
+
+// --- Actualizar responsables ---
+function actualizarResponsables(){
+  const nombres=Array.from(document.querySelectorAll("#asistentesTable tbody tr")).map(tr=>tr.children[0].querySelector("input").value).filter(n=>n.trim()!=="");
+  document.querySelectorAll(".responsableSelect").forEach(sel=>{
+    const val=sel.value;
+    sel.innerHTML="<option value=''>Seleccione</option>";
+    nombres.forEach(n=>sel.appendChild(new Option(n,n)));
+    if(nombres.includes(val)) sel.value=val;
+  });
+}
+
+// --- Guardar / Cargar LocalStorage ---
+function guardarLocalStorage(){
+  actualizarResponsables();
+  const data = {
+    lugar: document.getElementById("lugar").value,
+    fecha: document.getElementById("fecha").value,
+    horaInicioH: document.getElementById("horaInicioH").value,
+    horaInicioM: document.getElementById("horaInicioM").value,
+    horaInicioAMPM: document.getElementById("horaInicioAMPM").value,
+    horaFinH: document.getElementById("horaFinH").value,
+    horaFinM: document.getElementById("horaFinM").value,
+    horaFinAMPM: document.getElementById("horaFinAMPM").value,
+    sala: document.getElementById("sala").value,
+    tipo: document.getElementById("tipo").value,
+    organizador: document.getElementById("organizador").value,
+    notas: document.getElementById("notas").value,
+    asistentes: Array.from(document.querySelectorAll("#asistentesTable tbody tr")).map(tr => ({
+      nombre: tr.children[0].querySelector("input").value,
+      area: tr.children[1].querySelector("input").value,
+      rol: tr.children[2].querySelector("input").value,
+      participacion: tr.children[3].querySelector("select").value
+    })),
+    temas: Array.from(document.querySelectorAll("#temasTable tbody tr")).map(tr => ({ tema: tr.children[0].querySelector("input").value })),
+    acuerdos: Array.from(document.querySelectorAll("#acuerdosTable tbody tr")).map(tr => ({
+      acuerdo: tr.children[0].querySelector("input").value,
+      responsable: tr.children[1].querySelector("select").value,
+      fecha: tr.children[2].querySelector("input").value
+    }))
+  };
+  localStorage.setItem("minutaData", JSON.stringify(data));
+}
+
+function cargarLocalStorage(){
+  const data = JSON.parse(localStorage.getItem("minutaData"));
+  if(!data) return;
+  document.getElementById("lugar").value = data.lugar || "";
+  document.getElementById("fecha").value = data.fecha || "";
+  document.getElementById("horaInicioH").value = data.horaInicioH || "";
+  document.getElementById("horaInicioM").value = data.horaInicioM || "";
+  document.getElementById("horaInicioAMPM").value = data.horaInicioAMPM || "";
+  document.getElementById("horaFinH").value = data.horaFinH || "";
+  document.getElementById("horaFinM").value = data.horaFinM || "";
+  document.getElementById("horaFinAMPM").value = data.horaFinAMPM || "";
+  document.getElementById("sala").value = data.sala || "";
+  document.getElementById("tipo").value = data.tipo || "";
+  document.getElementById("organizador").value = data.organizador || "";
+  document.getElementById("notas").value = data.notas || "";
+
+  const tbodyAsistentes = document.querySelector("#asistentesTable tbody"); tbodyAsistentes.innerHTML = "";
+  data.asistentes?.forEach(a=>agregarAsistente(a));
+
+  const tbodyTemas = document.querySelector("#temasTable tbody"); tbodyTemas.innerHTML = "";
+  data.temas?.forEach(t=>agregarTema(t));
+
+  const tbodyAcuerdos = document.querySelector("#acuerdosTable tbody"); tbodyAcuerdos.innerHTML = "";
+  data.acuerdos?.forEach(a=>agregarAcuerdo(a));
+
+  actualizarResponsables();
+}
+
+// ============================
+// AUTOGUARDADO (persistencia)
+// ============================
+function debounce(fn, wait = 250) {
+  let t;
+  return function (...args) {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
+
+function initAutoSave() {
+  const save = debounce(() => {
+    try { guardarLocalStorage(); } catch(e) { /* no romper */ }
+  }, 250);
+
+  // Campos principales
+  const ids = [
+    "lugar","fecha","sala","tipo","organizador","notas",
+    "horaInicioH","horaInicioM","horaInicioAMPM",
+    "horaFinH","horaFinM","horaFinAMPM"
+  ];
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", save);
+    el.addEventListener("change", save);
+  });
+
+  // Tablas (delegación de eventos: guarda si cambias cualquier input/select dentro)
+  ["asistentesTable","temasTable","acuerdosTable"].forEach(tableId => {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    table.addEventListener("input", save);
+    table.addEventListener("change", save);
+  });
+}
+
+// --- Generar Minuta ---
+function generarMinuta(){
+  actualizarResponsables();
+  let html=`<div class="container">`;
+  html+=`<div style="text-align:center; margin-bottom:15px;">
+  <img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20CSW.png" style="max-width:150px;">
+  </div>`;
+  html+=`<h1>Minuta de Reunión</h1>`;
+  html+=`<p><strong>Lugar:</strong> ${document.getElementById("lugar").value}</p>`;
+  html+=`<p><strong>Fecha:</strong> ${document.getElementById("fecha").value} | <strong>Hora:</strong> ${document.getElementById("horaInicioH").value}:${document.getElementById("horaInicioM").value} ${document.getElementById("horaInicioAMPM").value} - ${document.getElementById("horaFinH").value}:${document.getElementById("horaFinM").value} ${document.getElementById("horaFinAMPM").value} | <strong>Sala:</strong> ${document.getElementById("sala").value}</p>`;
+  html+=`<p><strong>Tipo de reunión:</strong> ${document.getElementById("tipo").value}</p>`;
+  html+=`<p><strong>Organizador / Facilitador:</strong> ${document.getElementById("organizador").value}</p>`;
+
+  // Asistentes
+  html+=`<h2 class="section-title">Asistentes</h2><table><thead><tr><th>Nombre completo</th><th>Área/Departamento</th><th>Rol o Participación</th><th>Participación</th></tr></thead><tbody>`;
+  document.querySelectorAll("#asistentesTable tbody tr").forEach(tr=>{
+    html+=`<tr><td>${tr.children[0].querySelector("input").value}</td>
+    <td>${tr.children[1].querySelector("input").value}</td>
+    <td>${tr.children[2].querySelector("input").value}</td>
+    <td>${tr.children[3].querySelector("select").value}</td></tr>`;
+  });
+  html+=`</tbody></table>`;
+
+  // Temas
+  html+=`<h2 class="section-title">Temas del Orden del Día</h2><table><thead><tr><th>Tema</th></tr></thead><tbody>`;
+  document.querySelectorAll("#temasTable tbody tr").forEach(tr=>{
+    const tema = tr.children[0].querySelector("input").value;
+    if(tema.trim()!=="") html+=`<tr><td>${tema}</td></tr>`;
+  });
+  html+=`</tbody></table>`;
+
+  // Acuerdos
+  html+=`<h2 class="section-title">Acuerdos</h2><table><thead><tr><th>Acuerdo</th><th>Responsable</th><th>Fecha</th></tr></thead><tbody>`;
+  document.querySelectorAll("#acuerdosTable tbody tr").forEach(tr=>{
+    html+=`<tr><td>${tr.children[0].querySelector("input").value}</td>
+    <td>${tr.children[1].querySelector("select").value}</td>
+    <td>${tr.children[2].querySelector("input").value}</td></tr>`;
+  });
+  html+=`</tbody></table>`;
+
+  // Notas adicionales
+  html+=`<h2 class="section-title">Notas Adicionales</h2><p>${document.getElementById("notas").value}</p>`;
+
+  html+=`</div>`;
+  document.getElementById("minutaGenerada").innerHTML = html;
+  document.getElementById("minutaGenerada").style.display = "block";
+  document.getElementById("acciones").style.display = "block";
+  hacerColumnasRedimensionables();
+  guardarLocalStorage();
+}
+
+// --- Nueva minuta ---
+function nuevaMinuta(){ localStorage.removeItem("minutaData"); location.reload(); }
+
+// --- Exportar / Importar JSON ---
+function exportarMinuta(){
+  guardarLocalStorage();
+  const data = localStorage.getItem("minutaData");
+  const blob = new Blob([data], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "minuta.json";
+  a.click();
+}
+
+/* ✅ Corrección: Importa correctamente responsables */
+function importarMinuta(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const data = JSON.parse(e.target.result);
+      localStorage.setItem("minutaData", JSON.stringify(data));
+      cargarLocalStorage();
+      data.acuerdos?.forEach((a, i) => {
+        const rows = document.querySelectorAll("#acuerdosTable tbody tr");
+        if(rows[i]) rows[i].querySelector(".responsableSelect").value = a.responsable || "";
+      });
+      alert("✅ Minuta importada correctamente.");
+    }catch(err){ alert("Error al importar minuta."); }
+  };
+  reader.readAsText(file);
+}
+
+// --- Generar HTML de la minuta directamente (para PDF sin usar #minutaGenerada) ---
+function generarMinutaHTML() {
+    let html = `<div class="container">`;
+    html += `<div style="text-align:center; margin-bottom:15px;">
+    <img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20CSW.png" style="max-width:150px;">
+    </div>`;
+    html += `<h1>Minuta de Reunión</h1>`;
+    html += `<p><strong>Lugar:</strong> ${document.getElementById("lugar").value}</p>`;
+    html += `<p><strong>Fecha:</strong> ${document.getElementById("fecha").value} | <strong>Hora:</strong> ${document.getElementById("horaInicioH").value}:${document.getElementById("horaInicioM").value} ${document.getElementById("horaInicioAMPM").value} - ${document.getElementById("horaFinH").value}:${document.getElementById("horaFinM").value} ${document.getElementById("horaFinAMPM").value} | <strong>Sala:</strong> ${document.getElementById("sala").value}</p>`;
+    html += `<p><strong>Tipo de reunión:</strong> ${document.getElementById("tipo").value}</p>`;
+    html += `<p><strong>Organizador / Facilitador:</strong> ${document.getElementById("organizador").value}</p>`;
+
+    html += `<h2 class="section-title">Asistentes</h2><table><thead><tr><th>Nombre completo</th><th>Área/Departamento</th><th>Rol o Participación</th><th>Participación</th></tr></thead><tbody>`;
+    document.querySelectorAll("#asistentesTable tbody tr").forEach(tr => {
+        html += `<tr>
+            <td>${tr.children[0].querySelector("input").value}</td>
+            <td>${tr.children[1].querySelector("input").value}</td>
+            <td>${tr.children[2].querySelector("input").value}</td>
+            <td>${tr.children[3].querySelector("select").value}</td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+
+    html += `<h2 class="section-title">Temas del Orden del Día</h2><table><thead><tr><th>Tema</th></tr></thead><tbody>`;
+    document.querySelectorAll("#temasTable tbody tr").forEach(tr => {
+        const tema = tr.children[0].querySelector("input").value;
+        if(tema.trim() !== "") html += `<tr><td>${tema}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+
+    html += `<h2 class="section-title">Acuerdos</h2><table><thead><tr><th>Acuerdo</th><th>Responsable</th><th>Fecha</th></tr></thead><tbody>`;
+    document.querySelectorAll("#acuerdosTable tbody tr").forEach(tr => {
+        html += `<tr>
+            <td>${tr.children[0].querySelector("input").value}</td>
+            <td>${tr.children[1].querySelector("select").value}</td>
+            <td>${tr.children[2].querySelector("input").value}</td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+
+    html += `<h2 class="section-title">Notas Adicionales</h2><p>${document.getElementById("notas").value}</p>`;
+
+    html += `</div>`;
+    return html;
+}
+
+function exportarPDF(){
+    const htmlContent = generarMinutaHTML();
+    const tempDiv = document.createElement("div");
+
+    const style = document.createElement("style");
+    style.innerHTML = `
+      table { table-layout: auto; width: 100%; border-collapse: collapse; }
+      th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+      table:nth-of-type(1) th,
+      table:nth-of-type(1) td {
+          width: 25%;
+          white-space: normal;
+      }
+      table:nth-of-type(3) th:nth-child(2),
+      table:nth-of-type(3) th:nth-child(3),
+      table:nth-of-type(3) td:nth-child(2),
+      table:nth-of-type(3) td:nth-child(3) {
+          white-space: nowrap;
+          width: auto;
+      }
+    `;
+    tempDiv.appendChild(style);
+    tempDiv.innerHTML += htmlContent;
+
+    tempDiv.style.width = "800px";
+    document.body.appendChild(tempDiv);
+
+    html2canvas(tempDiv, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jspdf.jsPDF("p","mm","a4");
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        let heightLeft = pdfHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pdf.internal.pageSize.getHeight();
+
+        while (heightLeft > 0) {
+            position = heightLeft - pdfHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pdf.internal.pageSize.getHeight();
+        }
+
+        pdf.save("minuta.pdf");
+        document.body.removeChild(tempDiv);
+    });
+}
+
+// --- Permitir redimensionar columnas de todas las tablas ---
+function hacerColumnasRedimensionables() {
+  const tablas = document.querySelectorAll("table");
+  tablas.forEach(tabla => {
+    const ths = tabla.querySelectorAll("th");
+    ths.forEach((th, i) => {
+      if (th.querySelector(".resizer")) return;
+
+      const resizer = document.createElement("div");
+      resizer.classList.add("resizer");
+      resizer.style.width = "5px";
+      resizer.style.height = "100%";
+      resizer.style.position = "absolute";
+      resizer.style.right = "0";
+      resizer.style.top = "0";
+      resizer.style.cursor = "col-resize";
+      resizer.style.userSelect = "none";
+      resizer.addEventListener("mousedown", iniciarResize);
+      th.style.position = "relative";
+      th.appendChild(resizer);
+
+      function iniciarResize(e) {
+        e.preventDefault();
+        const startX = e.pageX;
+        const startWidth = th.offsetWidth;
+        function onMouseMove(e) {
+          const newWidth = startWidth + (e.pageX - startX);
+          th.style.width = newWidth + "px";
+          tabla.querySelectorAll("tr").forEach(row => {
+            const cell = row.children[i];
+            if (cell) cell.style.width = newWidth + "px";
+          });
+        }
+        function onMouseUp() {
+          document.removeEventListener("mousemove", onMouseMove);
+          document.removeEventListener("mouseup", onMouseUp);
+        }
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+      }
+    });
+  });
+}
+
+window.onload = () => { 
+  llenarSelectores(); 
+  cargarLocalStorage(); 
+  hacerColumnasRedimensionables(); // 🔧 Activar en todas las tablas
+  initAutoSave(); // ✅ AUTOGUARDADO
+};
+
+</script>
+
+<div style="text-align:center; font-size:0.85rem; color:#555; position:fixed; bottom:10px; width:100%;">By Pablo Ojeda</div>
+
+</body>
+</html>

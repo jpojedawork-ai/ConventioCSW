@@ -45,31 +45,26 @@ button:hover { background: #357abd; transform: translateY(-2px); }
 }
 
 .generated-minuta {
-  overflow: visible;      /* Permite que el contenido crezca */
-  max-height: none;       /* Sin límite de altura */
-  zoom: 1;                /* Evita escalado inesperado */
+  overflow: visible;
+  max-height: none;
+  zoom: 1;
 }
 
 /* Ajustar automáticamente columnas solo en la minuta generada */
 .generated-minuta table {
-  table-layout: auto; /* columnas se ajustan al contenido */
+  table-layout: auto;
 }
 
 .generated-minuta table th,
 .generated-minuta table td {
-  width: auto; /* elimina cualquier ancho fijo */
-}
-
-/* Ajustar tablas de la minuta generada */
-.generated-minuta table {
-  table-layout: auto; /* columnas ajustables al contenido */
+  width: auto;
 }
 
 /* --- Minuta: columnas Asistentes con ancho igual y texto en varias líneas --- */
 .generated-minuta table:nth-of-type(1) th,
 .generated-minuta table:nth-of-type(1) td {
-  width: 25%;       /* 4 columnas => 25% cada una */
-  white-space: normal; /* permite que el texto se ajuste en varias líneas */
+  width: 25%;
+  white-space: normal;
 }
 
 /* --- Minuta: columnas Acuerdos (Responsable, Fecha) --- */
@@ -99,7 +94,6 @@ div > img:last-child:hover {
 
 /* ============================
    BOTÓN FLOTANTE FULLSCREEN
-   (arriba, sin scroll)
    ============================ */
 .fullscreen-fab{
   position: fixed;
@@ -129,13 +123,12 @@ div > img:last-child:hover {
 
 <body>
 
-<!-- BOTÓN FULLSCREEN (siempre visible arriba a la derecha) -->
+<!-- BOTÓN FULLSCREEN -->
 <button id="fullscreenBtn" class="fullscreen-fab" title="Pantalla completa" aria-label="Pantalla completa">
   <span id="fullscreenIcon">⛶</span>
 </button>
 
 <div style="text-align:center; margin-bottom:15px;">
-    <!-- Logo de Control Interno arriba - AZUL FUERTE -->
     <div style="margin-bottom: 10px;">
         <img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20Control%20Interno.png" 
              alt="Logo Control Interno" 
@@ -143,7 +136,6 @@ div > img:last-child:hover {
              style="max-width: 100px; height: auto; filter: brightness(0) saturate(100%) invert(18%) sepia(72%) saturate(1273%) hue-rotate(190deg) brightness(90%) contrast(96%); transition: all 0.3s ease;">
     </div>
     
-    <!-- Logo CSW debajo (se mantiene original) -->
     <img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20CSW.png" 
          alt="Logo Scriptum" 
          style="max-width: 150px; height: auto; transition: all 0.3s ease;">
@@ -229,7 +221,7 @@ div > img:last-child:hover {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 /* ============================
-   FULLSCREEN API (botón arriba)
+   FULLSCREEN API
    ============================ */
 (function initFullscreen(){
   const btn = document.getElementById('fullscreenBtn');
@@ -240,7 +232,6 @@ div > img:last-child:hover {
   const canEnter = !!(docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen);
   const canExit  = !!(document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen);
 
-  // Si el navegador no soporta fullscreen, ocultar el botón.
   if (!canEnter || !canExit) {
     btn.style.display = 'none';
     return;
@@ -403,7 +394,7 @@ function cargarLocalStorage(){
 }
 
 // ============================
-// AUTOGUARDADO (persistencia)
+// AUTOGUARDADO
 // ============================
 function debounce(fn, wait = 250) {
   let t;
@@ -415,10 +406,9 @@ function debounce(fn, wait = 250) {
 
 function initAutoSave() {
   const save = debounce(() => {
-    try { guardarLocalStorage(); } catch(e) { /* no romper */ }
+    try { guardarLocalStorage(); } catch(e) { }
   }, 250);
 
-  // Campos principales
   const ids = [
     "lugar","fecha","sala","tipo","organizador","notas",
     "horaInicioH","horaInicioM","horaInicioAMPM",
@@ -432,7 +422,6 @@ function initAutoSave() {
     el.addEventListener("change", save);
   });
 
-  // Tablas (delegación de eventos: guarda si cambias cualquier input/select dentro)
   ["asistentesTable","temasTable","acuerdosTable"].forEach(tableId => {
     const table = document.getElementById(tableId);
     if (!table) return;
@@ -441,50 +430,73 @@ function initAutoSave() {
   });
 }
 
-// --- Generar Minuta ---
+// --- Generar Minuta (CORREGIDA) ---
 function generarMinuta(){
   actualizarResponsables();
-  let html=`<div class="container">`;
-  html+=`<div style="text-align:center; margin-bottom:15px;">
-  <img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20CSW.png" style="max-width:150px;">
-  </div>`;
-  html+=`<h1>Minuta de Reunión</h1>`;
-  html+=`<p><strong>Lugar:</strong> ${document.getElementById("lugar").value}</p>`;
-  html+=`<p><strong>Fecha:</strong> ${document.getElementById("fecha").value} | <strong>Hora:</strong> ${document.getElementById("horaInicioH").value}:${document.getElementById("horaInicioM").value} ${document.getElementById("horaInicioAMPM").value} - ${document.getElementById("horaFinH").value}:${document.getElementById("horaFinM").value} ${document.getElementById("horaFinAMPM").value} | <strong>Sala:</strong> ${document.getElementById("sala").value}</p>`;
-  html+=`<p><strong>Tipo de reunión:</strong> ${document.getElementById("tipo").value}</p>`;
-  html+=`<p><strong>Organizador / Facilitador:</strong> ${document.getElementById("organizador").value}</p>`;
+  let html = `<div class="container">`;
+  
+  // Logos lado a lado
+  html += `<div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap;">`;
+  html += `<img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20Control%20Interno.png" 
+               alt="Logo Control Interno"
+               style="max-width: 100px; height: auto; filter: brightness(0) saturate(100%) invert(18%) sepia(72%) saturate(1273%) hue-rotate(190deg) brightness(90%) contrast(96%);">`;
+  html += `<img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20CSW.png" 
+               alt="Logo CSW"
+               style="max-width: 150px; height: auto;">`;
+  html += `</div>`;
+  
+  html += `<h1>Minuta de Reunión</h1>`;
+  html += `<p><strong>Lugar:</strong> ${document.getElementById("lugar").value}</p>`;
+  html += `<p><strong>Fecha:</strong> ${document.getElementById("fecha").value} | <strong>Hora:</strong> ${document.getElementById("horaInicioH").value}:${document.getElementById("horaInicioM").value} ${document.getElementById("horaInicioAMPM").value} - ${document.getElementById("horaFinH").value}:${document.getElementById("horaFinM").value} ${document.getElementById("horaFinAMPM").value} | <strong>Sala:</strong> ${document.getElementById("sala").value}</p>`;
+  html += `<p><strong>Tipo de reunión:</strong> ${document.getElementById("tipo").value}</p>`;
+  html += `<p><strong>Organizador / Facilitador:</strong> ${document.getElementById("organizador").value}</p>`;
 
   // Asistentes
-  html+=`<h2 class="section-title">Asistentes</h2><table><thead><tr><th>Nombre completo</th><th>Área/Departamento</th><th>Rol o Participación</th><th>Participación</th></tr></thead><tbody>`;
+  html += `<h2 class="section-title">Asistentes</h2>`;
+  html += `<table class="minuta-table">`;
+  html += `<thead><tr><th>Nombre completo</th><th>Área/Departamento</th><th>Rol o Participación</th><th>Participación</th></tr></thead>`;
+  html += `<tbody>`;
   document.querySelectorAll("#asistentesTable tbody tr").forEach(tr=>{
-    html+=`<tr><td>${tr.children[0].querySelector("input").value}</td>
-    <td>${tr.children[1].querySelector("input").value}</td>
-    <td>${tr.children[2].querySelector("input").value}</td>
-    <td>${tr.children[3].querySelector("select").value}</td></tr>`;
+    html += `<tr>
+      <td>${tr.children[0].querySelector("input").value}</td>
+      <td>${tr.children[1].querySelector("input").value}</td>
+      <td>${tr.children[2].querySelector("input").value}</td>
+      <td>${tr.children[3].querySelector("select").value}</td>
+    </tr>`;
   });
-  html+=`</tbody></table>`;
+  html += `</tbody></table>`;
 
   // Temas
-  html+=`<h2 class="section-title">Temas del Orden del Día</h2><table><thead><tr><th>Tema</th></tr></thead><tbody>`;
+  html += `<h2 class="section-title">Temas del Orden del Día</h2>`;
+  html += `<table class="minuta-table">`;
+  html += `<thead><tr><th>Tema</th></tr></thead>`;
+  html += `<tbody>`;
   document.querySelectorAll("#temasTable tbody tr").forEach(tr=>{
     const tema = tr.children[0].querySelector("input").value;
-    if(tema.trim()!=="") html+=`<tr><td>${tema}</td></tr>`;
+    if(tema.trim()!=="") html += `<tr><td>${tema}</td></tr>`;
   });
-  html+=`</tbody></table>`;
+  html += `</tbody></table>`;
 
   // Acuerdos
-  html+=`<h2 class="section-title">Acuerdos</h2><table><thead><tr><th>Acuerdo</th><th>Responsable</th><th>Fecha</th></tr></thead><tbody>`;
+  html += `<h2 class="section-title">Acuerdos</h2>`;
+  html += `<table class="minuta-table">`;
+  html += `<thead><tr><th>Acuerdo</th><th>Responsable</th><th>Fecha</th></tr></thead>`;
+  html += `<tbody>`;
   document.querySelectorAll("#acuerdosTable tbody tr").forEach(tr=>{
-    html+=`<tr><td>${tr.children[0].querySelector("input").value}</td>
-    <td>${tr.children[1].querySelector("select").value}</td>
-    <td>${tr.children[2].querySelector("input").value}</td></tr>`;
+    html += `<tr>
+      <td>${tr.children[0].querySelector("input").value}</td>
+      <td>${tr.children[1].querySelector("select").value}</td>
+      <td>${tr.children[2].querySelector("input").value}</td>
+    </tr>`;
   });
-  html+=`</tbody></table>`;
+  html += `</tbody></table>`;
 
   // Notas adicionales
-  html+=`<h2 class="section-title">Notas Adicionales</h2><p>${document.getElementById("notas").value}</p>`;
+  html += `<h2 class="section-title">Notas Adicionales</h2>`;
+  html += `<p>${document.getElementById("notas").value.replace(/\n/g, '<br>')}</p>`;
 
-  html+=`</div>`;
+  html += `</div>`;
+  
   document.getElementById("minutaGenerada").innerHTML = html;
   document.getElementById("minutaGenerada").style.display = "block";
   document.getElementById("acciones").style.display = "block";
@@ -506,7 +518,6 @@ function exportarMinuta(){
   a.click();
 }
 
-/* ✅ Corrección: Importa correctamente responsables */
 function importarMinuta(event){
   const file = event.target.files[0];
   if(!file) return;
@@ -526,7 +537,7 @@ function importarMinuta(event){
   reader.readAsText(file);
 }
 
-// --- Generar HTML de la minuta directamente (para PDF sin usar #minutaGenerada) ---
+// --- Generar HTML de la minuta directamente (para PDF) ---
 function generarMinutaHTML() {
     let html = `<div class="container">`;
     html += `<div style="text-align:center; margin-bottom:15px;">
@@ -575,28 +586,10 @@ function generarMinutaHTML() {
 function exportarPDF(){
     const htmlContent = generarMinutaHTML();
     const tempDiv = document.createElement("div");
-
-    const style = document.createElement("style");
-    style.innerHTML = `
-      table { table-layout: auto; width: 100%; border-collapse: collapse; }
-      th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-      table:nth-of-type(1) th,
-      table:nth-of-type(1) td {
-          width: 25%;
-          white-space: normal;
-      }
-      table:nth-of-type(3) th:nth-child(2),
-      table:nth-of-type(3) th:nth-child(3),
-      table:nth-of-type(3) td:nth-child(2),
-      table:nth-of-type(3) td:nth-child(3) {
-          white-space: nowrap;
-          width: auto;
-      }
-    `;
-    tempDiv.appendChild(style);
-    tempDiv.innerHTML += htmlContent;
-
     tempDiv.style.width = "800px";
+    tempDiv.style.background = "white";
+    tempDiv.style.padding = "20px";
+    tempDiv.innerHTML = htmlContent;
     document.body.appendChild(tempDiv);
 
     html2canvas(tempDiv, { scale: 2 }).then(canvas => {
@@ -621,6 +614,172 @@ function exportarPDF(){
         pdf.save("minuta.pdf");
         document.body.removeChild(tempDiv);
     });
+}
+
+// --- Función para imprimir la minuta (CORREGIDA) ---
+function imprimirMinuta() {
+    const minutaDiv = document.getElementById('minutaGenerada');
+    const contenidoMinuta = minutaDiv.innerHTML;
+    
+    if (!contenidoMinuta || contenidoMinuta.trim() === '') {
+        alert('Primero debes generar la minuta haciendo clic en "Generar Minuta"');
+        return;
+    }
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = contenidoMinuta;
+    tempDiv.querySelectorAll('.resizer').forEach(el => el.remove());
+    tempDiv.querySelectorAll('th').forEach(th => {
+        th.style.position = '';
+    });
+    
+    const contenidoLimpio = tempDiv.innerHTML;
+    
+    const ventanaImpresion = window.open('', '_blank');
+    ventanaImpresion.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Minuta de Reunión</title>
+            <meta charset="UTF-8">
+            <style>
+                * { box-sizing: border-box; }
+                body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; background: white; }
+                .container { max-width: 1100px; margin: 0 auto; background: white; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                th, td { border: 1px solid #ccc; padding: 10px; text-align: left; vertical-align: top; }
+                th { background: #4a90e2; color: white; font-weight: 600; }
+                .section-title { color: #4a90e2; margin-top: 25px; margin-bottom: 10px; font-size: 1.3em; border-left: 4px solid #4a90e2; padding-left: 10px; }
+                img { max-width: 150px; }
+                h1 { text-align: center; color: #2c3e50; margin: 20px 0; }
+                p { margin: 8px 0; line-height: 1.4; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                ${contenidoLimpio}
+            </div>
+            <script>
+                window.onload = function() { window.print(); setTimeout(() => window.close(), 500); };
+            <\/script>
+        </body>
+        </html>
+    `);
+    ventanaImpresion.document.close();
+}
+
+// --- Función auxiliar para generar texto plano (para correo) ---
+function generarTextoPlano() {
+    let texto = 'MINUTA DE REUNIÓN\n';
+    texto += '='.repeat(50) + '\n\n';
+    
+    texto += `Lugar: ${document.getElementById("lugar").value}\n`;
+    texto += `Fecha: ${document.getElementById("fecha").value}\n`;
+    texto += `Hora: ${document.getElementById("horaInicioH").value}:${document.getElementById("horaInicioM").value} ${document.getElementById("horaInicioAMPM").value} - ${document.getElementById("horaFinH").value}:${document.getElementById("horaFinM").value} ${document.getElementById("horaFinAMPM").value}\n`;
+    texto += `Sala: ${document.getElementById("sala").value}\n`;
+    texto += `Tipo de reunión: ${document.getElementById("tipo").value}\n`;
+    texto += `Organizador: ${document.getElementById("organizador").value}\n\n`;
+    
+    texto += 'ASISTENTES\n';
+    texto += '-'.repeat(40) + '\n';
+    document.querySelectorAll("#asistentesTable tbody tr").forEach(tr => {
+        const nombre = tr.children[0].querySelector("input").value;
+        const area = tr.children[1].querySelector("input").value;
+        const rol = tr.children[2].querySelector("input").value;
+        const participacion = tr.children[3].querySelector("select").value;
+        if (nombre) texto += `• ${nombre} | ${area} | ${rol} | ${participacion}\n`;
+    });
+    
+    texto += '\nTEMAS DEL ORDEN DEL DÍA\n';
+    texto += '-'.repeat(40) + '\n';
+    document.querySelectorAll("#temasTable tbody tr").forEach(tr => {
+        const tema = tr.children[0].querySelector("input").value;
+        if (tema) texto += `• ${tema}\n`;
+    });
+    
+    texto += '\nACUERDOS\n';
+    texto += '-'.repeat(40) + '\n';
+    document.querySelectorAll("#acuerdosTable tbody tr").forEach(tr => {
+        const acuerdo = tr.children[0].querySelector("input").value;
+        const responsable = tr.children[1].querySelector("select").value;
+        const fecha = tr.children[2].querySelector("input").value;
+        if (acuerdo) texto += `• ${acuerdo} | Responsable: ${responsable} | Fecha: ${fecha}\n`;
+    });
+    
+    const notas = document.getElementById("notas").value;
+    if (notas) {
+        texto += '\nNOTAS ADICIONALES\n';
+        texto += '-'.repeat(40) + '\n';
+        texto += `${notas}\n`;
+    }
+    
+    return texto;
+}
+
+// --- Función para enviar por correo / Word (CORREGIDA) ---
+function enviarCorreoWord() {
+    const minutaDiv = document.getElementById('minutaGenerada');
+    let contenidoMinuta = minutaDiv.innerHTML;
+    
+    if (!contenidoMinuta || contenidoMinuta.trim() === '') {
+        alert('Primero debes generar la minuta haciendo clic en "Generar Minuta"');
+        return;
+    }
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = contenidoMinuta;
+    tempDiv.querySelectorAll('.resizer').forEach(el => el.remove());
+    tempDiv.querySelectorAll('th').forEach(th => {
+        th.style.position = '';
+    });
+    
+    const contenidoLimpio = tempDiv.innerHTML;
+    
+    const htmlCompleto = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Minuta de Reunión</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background: white; }
+        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+        th, td { border: 1px solid #aaa; padding: 10px; text-align: left; vertical-align: top; }
+        th { background: #4a90e2; color: white; font-weight: 600; }
+        .section-title { color: #4a90e2; margin-top: 25px; margin-bottom: 10px; font-size: 1.3em; border-left: 4px solid #4a90e2; padding-left: 10px; }
+        img { max-width: 150px; }
+        h1 { text-align: center; color: #2c3e50; margin: 20px 0; }
+        p { margin: 8px 0; line-height: 1.4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        ${contenidoLimpio}
+    </div>
+</body>
+</html>`;
+    
+    const opcion = confirm('¿Deseas descargar como archivo de Word?\n\n"Aceptar" = Descargar archivo .doc\n"Cancelar" = Abrir correo electrónico');
+    
+    if (opcion) {
+        const blob = new Blob([htmlCompleto], { type: 'application/msword' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = 'minuta_reunion.doc';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        alert('✓ Archivo de Word descargado correctamente.\n\nPuedes adjuntarlo a tu correo electrónico.');
+    } else {
+        const textoPlano = generarTextoPlano();
+        const subject = encodeURIComponent('Minuta de Reunión');
+        const body = encodeURIComponent(textoPlano);
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        alert('✓ Se ha abierto tu cliente de correo.\n\nEl contenido de la minuta se ha incluido como texto.\nSi necesitas formato, usa la opción de descargar Word.');
+    }
 }
 
 // --- Permitir redimensionar columnas de todas las tablas ---
@@ -670,8 +829,8 @@ function hacerColumnasRedimensionables() {
 window.onload = () => { 
   llenarSelectores(); 
   cargarLocalStorage(); 
-  hacerColumnasRedimensionables(); // 🔧 Activar en todas las tablas
-  initAutoSave(); // ✅ AUTOGUARDADO
+  hacerColumnasRedimensionables();
+  initAutoSave();
 };
 
 </script>
